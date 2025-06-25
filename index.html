@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habit Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --accent: #4cc9f0;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #4bb543;
+            --muted: #6c757d;
+            --error: #ff6b6b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f5f7fa;
+            color: var(--dark);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: var(--secondary);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .controls {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            flex-grow: 1;
+        }
+
+        .month-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        select, input, button {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        select:focus, input:focus, button:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(76, 201, 240, 0.3);
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        button:hover {
+            background-color: var(--secondary);
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        #newHabit {
+            flex-grow: 1;
+            min-width: 200px;
+        }
+
+        .tracker-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .habit-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .habit-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .habit-header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .habit-title {
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        .delete-habit {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 0 5px;
+            line-height: 1;
+        }
+
+        .calendar {
+            padding: 15px;
+        }
+
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: 600;
+            color: var(--muted);
+            font-size: 0.8rem;
+        }
+
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+
+        .day-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            position: relative;
+            background-color: #f8f9fa;
+        }
+
+        .day-cell:hover:not(.empty):not(.future) {
+            background-color: #e9ecef;
+        }
+
+        .day-cell.checked {
+            background-color: var(--success);
+            color: white;
+            font-weight: 600;
+        }
+
+        .day-cell.empty {
+            visibility: hidden;
+        }
+
+        .day-cell.future {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background-color: transparent;
+        }
+
+        .day-number {
+            z-index: 1;
+        }
+
+        .streak-indicator {
+            position: absolute;
+            bottom: 2px;
+            font-size: 0.6rem;
+            color: inherit;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--muted);
+            grid-column: 1 / -1;
+        }
+
+        .input-error {
+            border-color: var(--error) !important;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+
+        @media (max-width: 768px) {
+            .tracker-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .input-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Habit Tracker</h1>
+        <p>Track your daily progress and build lasting habits</p>
+    </header>
+
+    <div class="controls">
+        <div class="input-group">
+            <input type="text" id="newHabit" placeholder="Enter new habit (e.g., Exercise)">
+            <button id="addHabit">Add Habit</button>
+        </div>
+        
+        <div class="month-selector">
+            <button id="prevMonth"><</button>
+            <select id="monthSelect"></select>
+            <select id="yearSelect"></select>
+            <button id="nextMonth">></button>
+        </div>
+    </div>
+
+    <div class="tracker-container" id="trackerContainer">
+        <div class="empty-state" id="emptyState">
+            <p>No habits yet. Add your first habit to get started!</p>
+        </div>
+    </div>
+
+    <script>
+        // Database setup
+        const dbPromise = new Promise((resolve, reject) => {
+            const request = indexedDB.open("HabitTrackerDB", 3);
+            
+            request.onupgradeneeded = (event) => {
+                const db = event.target.result;
+                if (!db.objectStoreNames.contains('habits')) {
+                    const store = db.createObjectStore('habits', { keyPath: 'name' });
+                    store.createIndex('by_name', 'name', { unique: true });
+                }
+            };
+            
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = (event) => {
+                console.error("Database error:", event.target.error);
+                reject(event.target.error);
+            };
+        });
+
+        // Helper functions for IndexedDB
+        async function getAllHabits() {
+            try {
+                const db = await dbPromise;
+                return new Promise((resolve) => {
+                    const tx = db.transaction('habits', 'readonly');
+                    const store = tx.objectStore('habits');
+                    const request = store.getAll();
+                    
+                    request.onsuccess = () => resolve(request.result || []);
+                    request.onerror = (event) => {
+                        console.error("Error getting habits:", event.target.error);
+                        resolve([]);
+                    };
+                });
+            } catch (error) {
+                console.error("Database connection error:", error);
+                return [];
+            }
+        }
+
+        async function saveHabit(habit) {
+            try {
+                const db = await dbPromise;
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction('habits', 'readwrite');
+                    const store = tx.objectStore('habits');
+                    
+                    const request = store.put(habit);
+                    
+                    request.onsuccess = () => resolve();
+                    request.onerror = (event) => {
+                        console.error("Error saving habit:", event.target.error);
+                        reject(event.target.error);
+                    };
+                });
+            } catch (error) {
+                console.error("Database connection error:", error);
+                throw error;
+            }
+        }
+
+        async function deleteHabit(habitName) {
+            try {
+                const db = await dbPromise;
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction('habits', 'readwrite');
+                    const store = tx.objectStore('habits');
+                    
+                    const request = store.delete(habitName);
+                    
+                    request.onsuccess = () => resolve();
+                    request.onerror = (event) => {
+                        console.error("Error deleting habit:", event.target.error);
+                        reject(event.target.error);
+                    };
+                });
+            } catch (error) {
+                console.error("Database connection error:", error);
+                throw error;
+            }
+        }
+
+        // App state
+        let currentDate = new Date();
+        let currentMonth = currentDate.getMonth();
+        let currentYear = currentDate.getFullYear();
+        let habits = [];
+
+        // DOM elements
+        const monthSelect = document.getElementById('monthSelect');
+        const yearSelect = document.getElementById('yearSelect');
+        const prevMonthBtn = document.getElementById('prevMonth');
+        const nextMonthBtn = document.getElementById('nextMonth');
+        const addHabitBtn = document.getElementById('addHabit');
+        const newHabitInput = document.getElementById('newHabit');
+        const trackerContainer = document.getElementById('trackerContainer');
+        const emptyState = document.getElementById('emptyState');
+
+        // Initialize month/year dropdowns
+        function initDateSelectors() {
+            // Months
+            const monthNames = ["January", "February", "March", "April", "May", "June", 
+                               "July", "August", "September", "October", "November", "December"];
+            monthSelect.innerHTML = monthNames.map((month, index) => 
+                `<option value="${index}" ${index === currentMonth ? 'selected' : ''}>${month}</option>`
+            ).join('');
+
+            // Years (current year ± 5)
+            yearSelect.innerHTML = '';
+            for (let year = currentYear - 2; year <= currentYear + 2; year++) {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                if (year === currentYear) option.selected = true;
+                yearSelect.appendChild(option);
+            }
+        }
+
+        // Load habits and render
+        async function loadHabits() {
+            try {
+                habits = await getAllHabits();
+                renderHabits();
+            } catch (error) {
+                console.error("Error loading habits:", error);
+                emptyState.textContent = "Error loading habits. Please refresh the page.";
+                emptyState.style.display = 'block';
+            }
+        }
+
+        // Render all habit cards
+        function renderHabits() {
+            if (!habits || habits.length === 0) {
+                emptyState.style.display = 'block';
+                trackerContainer.innerHTML = '';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            trackerContainer.innerHTML = '';
+
+            habits.forEach(habit => {
+                const habitCard = document.createElement('div');
+                habitCard.className = 'habit-card';
+                
+                // Habit header with title and delete button
+                const habitHeader = document.createElement('div');
+                habitHeader.className = 'habit-header';
+                habitHeader.innerHTML = `
+                    <div class="habit-title">${habit.name}</div>
+                    <button class="delete-habit" data-habit="${habit.name}" aria-label="Delete habit">×</button>
+                `;
+                
+                // Calendar grid
+                const calendar = document.createElement('div');
+                calendar.className = 'calendar';
+                
+                // Weekday headers
+                const weekdays = document.createElement('div');
+                weekdays.className = 'weekdays';
+                weekdays.innerHTML = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
+                    .map(day => `<div>${day}</div>`).join('');
+                
+                // Days grid
+                const daysGrid = document.createElement('div');
+                daysGrid.className = 'days-grid';
+                
+                // Get first day of month and total days
+                const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+                const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+                const today = new Date();
+                const isCurrentMonth = currentMonth === today.getMonth() && currentYear === today.getFullYear();
+                
+                // Empty cells for days before the 1st
+                for (let i = 0; i < firstDay; i++) {
+                    const emptyCell = document.createElement('div');
+                    emptyCell.className = 'day-cell empty';
+                    daysGrid.appendChild(emptyCell);
+                }
+                
+                // Days of the month
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dayCell = document.createElement('div');
+                    dayCell.className = 'day-cell';
+                    dayCell.innerHTML = `<div class="day-number">${day}</div>`;
+                    
+                    const dateStr = `${currentYear}-${currentMonth}-${day}`;
+                    const isChecked = habit.days && habit.days.includes(dateStr);
+                    const isFuture = isCurrentMonth && day > today.getDate();
+                    
+                    if (isChecked) dayCell.classList.add('checked');
+                    if (isFuture) dayCell.classList.add('future');
+                    
+                    // Add click handler for past days in current month
+                    if (!isFuture) {
+                        dayCell.addEventListener('click', () => toggleDay(habit, day));
+                    }
+                    
+                    daysGrid.appendChild(dayCell);
+                }
+                
+                // Assemble the card
+                calendar.appendChild(weekdays);
+                calendar.appendChild(daysGrid);
+                habitCard.appendChild(habitHeader);
+                habitCard.appendChild(calendar);
+                trackerContainer.appendChild(habitCard);
+            });
+
+            // Add event listeners to delete buttons
+            document.querySelectorAll('.delete-habit').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const habitName = e.target.getAttribute('data-habit');
+                    if (confirm(`Delete habit "${habitName}" and all its data?`)) {
+                        try {
+                            await deleteHabit(habitName);
+                            await loadHabits();
+                        } catch (error) {
+                            alert('Failed to delete habit. Please try again.');
+                            console.error("Delete error:", error);
+                        }
+                    }
+                });
+            });
+        }
+
+        // Toggle day completion status
+        async function toggleDay(habit, day) {
+            const dateStr = `${currentYear}-${currentMonth}-${day}`;
+            
+            if (!habit.days) habit.days = [];
+            const dayIndex = habit.days.indexOf(dateStr);
+            
+            if (dayIndex === -1) {
+                habit.days.push(dateStr);
+            } else {
+                habit.days.splice(dayIndex, 1);
+            }
+            
+            try {
+                await saveHabit(habit);
+                renderHabits();
+            } catch (error) {
+                alert('Failed to save habit. Please try again.');
+                console.error("Save error:", error);
+            }
+        }
+
+        // Add new habit
+        async function addNewHabit() {
+            const habitName = newHabitInput.value.trim();
+            
+            if (!habitName) {
+                newHabitInput.classList.add('input-error');
+                setTimeout(() => newHabitInput.classList.remove('input-error'), 500);
+                return;
+            }
+            
+            try {
+                // Check if habit already exists
+                const existingHabits = await getAllHabits();
+                if (existingHabits.some(h => h.name.toLowerCase() === habitName.toLowerCase())) {
+                    alert('This habit already exists!');
+                    return;
+                }
+
+                const newHabit = {
+                    name: habitName,
+                    days: []
+                };
+                
+                await saveHabit(newHabit);
+                newHabitInput.value = '';
+                await loadHabits();
+            } catch (error) {
+                alert('Failed to add habit. Please try again.');
+                console.error("Add habit error:", error);
+            }
+        }
+
+        // Change month
+        function changeMonth() {
+            currentMonth = parseInt(monthSelect.value);
+            currentYear = parseInt(yearSelect.value);
+            renderHabits();
+        }
+
+        // Initialize the app
+        async function initializeApp() {
+            initDateSelectors();
+            await loadHabits();
+            
+            // Event listeners
+            monthSelect.addEventListener('change', changeMonth);
+            yearSelect.addEventListener('change', changeMonth);
+            
+            prevMonthBtn.addEventListener('click', () => {
+                if (currentMonth === 0) {
+                    currentMonth = 11;
+                    currentYear--;
+                } else {
+                    currentMonth--;
+                }
+                monthSelect.value = currentMonth;
+                yearSelect.value = currentYear;
+                renderHabits();
+            });
+            
+            nextMonthBtn.addEventListener('click', () => {
+                if (currentMonth === 11) {
+                    currentMonth = 0;
+                    currentYear++;
+                } else {
+                    currentMonth++;
+                }
+                monthSelect.value = currentMonth;
+                yearSelect.value = currentYear;
+                renderHabits();
+            });
+
+            addHabitBtn.addEventListener('click', addNewHabit);
+            newHabitInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addNewHabit();
+            });
+        }
+
+        // Start the app
+        document.addEventListener('DOMContentLoaded', initializeApp);
+    </script>
+</body>
+</html>
