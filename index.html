@@ -247,7 +247,7 @@
 
     .habit-header .streak {
       position: absolute;
-      top: 16px;
+      top: 17px;
       right: 69px;
       background: var(--error);
       color: white;
@@ -506,7 +506,7 @@
         new Date(h.createdAt?.toDate() || new Date()) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
       );
       if (newHabits.length > 0) {
-        badges.push({ text: `${newHabits.length} New`, type: "warning" });
+        badges.push({ text: `${newHabits.length} New Habit`, type: "warning" });
       }
       
       return badges;
