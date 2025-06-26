@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Daily Habit Tracker</title>
+  <title>Habit Tracker</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css" rel="stylesheet">
   <style>
     :root {
       --primary: #4f46e5;
@@ -21,6 +22,7 @@
       --success: #10b981;
       --warning: #f59e0b;
       --info: #3b82f6;
+      --font-size-base: 16px;
     }
 
     [data-theme="dark"] {
@@ -45,54 +47,57 @@
 
     body {
       font-family: 'Poppins', sans-serif;
+      font-size: var(--font-size-base);
       background-color: var(--background);
       color: var(--text);
       min-height: 100vh;
       transition: background-color 0.3s, color 0.3s;
     }
 
-    .user-bar {
+    .app-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 15px 20px;
+      padding: 20px;
       background-color: var(--card-bg);
       box-shadow: var(--shadow);
+      margin-bottom: 20px;
     }
 
-    .user-info {
+    .header-left {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 15px;
     }
 
-    .badge-container {
+    .user-greeting {
+      font-weight: 600;
+      font-size: 1.2rem;
+    }
+
+    .header-center {
+      flex: 1;
+      text-align: center;
+    }
+
+    .app-title {
+      font-size: 2.2rem;
+      color: var(--primary);
+      margin: 0;
+    }
+
+    .header-right {
       display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
+      align-items: center;
+      gap: 15px;
     }
 
     .badge {
-      font-size: 0.7rem;
-      padding: 3px 8px;
+      font-size: 1rem;
+      padding: 6px 12px;
       border-radius: 12px;
       background-color: var(--accent);
       color: white;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .badge.warning {
-      background-color: var(--warning);
-    }
-
-    .badge.info {
-      background-color: var(--info);
-    }
-
-    .badge.error {
-      background-color: var(--error);
     }
 
     .theme-toggle {
@@ -100,17 +105,28 @@
       border: none;
       color: var(--text);
       cursor: pointer;
-      font-size: 1.2rem;
+      font-size: 1.5rem;
+      transition: transform 0.2s;
     }
 
-    header {
-      text-align: center;
-      margin: 20px 0;
+    .theme-toggle:hover {
+      transform: scale(1.1);
     }
 
-    h1 {
-      font-size: 2.5rem;
-      color: var(--primary);
+    #logoutBtn {
+      background-color: var(--error);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-weight: 500;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    #logoutBtn:hover {
+      opacity: 0.9;
     }
 
     /* Auth modal */
@@ -135,47 +151,74 @@
       max-width: 400px;
     }
 
+    .auth-box h2 {
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+    }
+
     .auth-box input {
       width: 100%;
-      padding: 12px;
-      margin: 10px 0;
+      padding: 14px;
+      margin: 12px 0;
       border-radius: 6px;
       border: 1px solid var(--muted);
-      font-size: 1rem;
+      font-size: 1.1rem;
       background-color: var(--card-bg);
       color: var(--text);
     }
 
     .auth-box button {
       width: 100%;
-      padding: 12px;
-      margin-top: 10px;
+      padding: 14px;
+      margin-top: 12px;
       background: var(--primary);
       color: var(--white);
       font-weight: 600;
+      font-size: 1.1rem;
       border: none;
       border-radius: 6px;
       cursor: pointer;
+      transition: background-color 0.2s;
     }
 
     .auth-box button:hover {
       background: var(--secondary);
     }
 
+    .auth-tabs {
+      display: flex;
+      margin-bottom: 20px;
+    }
+
+    .auth-tab {
+      flex: 1;
+      padding: 12px;
+      cursor: pointer;
+      border-bottom: 2px solid var(--muted);
+      font-size: 1.1rem;
+      transition: all 0.2s;
+    }
+
+    .auth-tab.active {
+      border-bottom: 2px solid var(--primary);
+      font-weight: bold;
+    }
+
     /* App layout */
     .controls, .tracker-container {
-      max-width: 1000px;
+      max-width: 1200px;
       margin: 20px auto;
       padding: 20px;
       background: var(--card-bg);
       border-radius: 10px;
       box-shadow: var(--shadow);
+      font-size: 1.1rem;
     }
 
     .controls {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 15px;
       justify-content: space-between;
     }
 
@@ -189,15 +232,23 @@
       display: flex;
       gap: 10px;
       align-items: center;
+      font-size: 1.1rem;
     }
 
     input, select, button {
-      padding: 10px;
+      padding: 12px;
       font-family: inherit;
+      font-size: 1.1rem;
       border: 1px solid var(--muted);
       border-radius: 6px;
       background-color: var(--card-bg);
       color: var(--text);
+      transition: border-color 0.2s;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
     }
 
     button {
@@ -205,13 +256,112 @@
       color: white;
       cursor: pointer;
       font-weight: bold;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+
+    button:hover {
+      background-color: var(--secondary);
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    /* Loading spinner */
+    .loading-spinner {
+      border: 3px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top: 3px solid var(--white);
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* View Toggle */
+    .view-toggle {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .view-btn {
+      padding: 8px 16px;
+      border-radius: 20px;
+      background: var(--day-cell-bg);
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .view-btn.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    /* Category Filter */
+    .category-filter {
+      margin-bottom: 20px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .category-filter select {
+      flex: 1;
+      max-width: 200px;
+    }
+
+    /* Stats Container */
+    .stats-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .stat-card h3 {
+      margin-top: 0;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .stat-card p {
+      font-size: 2rem;
+      font-weight: bold;
+      margin: 10px 0 0;
+    }
+
+    .chart-container {
+      height: 300px;
+      margin-top: 20px;
     }
 
     /* Habits grid */
     .habits-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(3, minmax(300px, 1fr));
+      gap: 25px;
     }
 
     .habit-card {
@@ -219,11 +369,12 @@
       border-radius: 10px;
       overflow: hidden;
       box-shadow: var(--shadow);
-      transition: transform 0.2s;
+      transition: transform 0.2s, box-shadow 0.2s;
     }
 
     .habit-card:hover {
-      transform: translateY(-2px);
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
     }
 
     .habit-card.dragging {
@@ -237,33 +388,17 @@
     }
 
     .habit-header {
-      padding: 15px;
+      padding: 18px;
       color: white;
       display: flex;
       justify-content: space-between;
       font-weight: bold;
-      position: relative;
-    }
-
-    .habit-header .streak {
-      position: absolute;
-      top: 17px;
-      right: 69px;
-      background: var(--error);
-      color: white;
-      border-radius: 50%;
-      width: 24px;
-      height: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.8rem;
-      font-weight: bold;
+      font-size: 1.2rem;
     }
 
     .habit-actions {
       display: flex;
-      gap: 8px;
+      gap: 10px;
     }
 
     .habit-actions button {
@@ -271,25 +406,31 @@
       border: none;
       color: white;
       cursor: pointer;
-      font-size: 0.9rem;
-      padding: 2px;
+      font-size: 1.1rem;
+      padding: 4px;
+      transition: transform 0.2s;
+    }
+
+    .habit-actions button:hover {
+      transform: scale(1.2);
     }
 
     .calendar {
-      padding: 15px;
+      padding: 18px;
     }
 
     .weekdays, .days-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       text-align: center;
-      gap: 5px;
+      gap: 6px;
+      font-size: 1.1rem;
     }
 
     .day-cell {
       background-color: var(--day-cell-bg);
       border-radius: 6px;
-      padding: 10px 0;
+      padding: 12px 0;
       cursor: pointer;
       font-weight: 500;
       transition: all 0.2s;
@@ -315,26 +456,23 @@
       padding: 40px;
       color: var(--muted);
       grid-column: 1 / -1;
-    }
-
-    #logoutBtn {
-      display: block;
-      margin: 0 auto 20px;
-      background-color: var(--error);
+      font-size: 1.2rem;
     }
 
     .tabs {
       display: flex;
       justify-content: center;
-      margin-bottom: 20px;
-      gap: 10px;
+      margin-bottom: 25px;
+      gap: 15px;
     }
 
     .tab {
-      padding: 8px 16px;
+      padding: 10px 20px;
       border-radius: 20px;
       cursor: pointer;
       background: var(--day-cell-bg);
+      font-size: 1.1rem;
+      transition: all 0.2s;
     }
 
     .tab.active {
@@ -351,7 +489,52 @@
       z-index: 1000;
     }
 
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--primary);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      z-index: 1000;
+      animation: fadeIn 0.3s;
+      box-shadow: var(--shadow);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; bottom: 0; }
+      to { opacity: 1; bottom: 20px; }
+    }
+
+    @media (max-width: 1200px) {
+      .habits-grid {
+        grid-template-columns: repeat(2, minmax(300px, 1fr));
+      }
+      
+      .stats-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
     @media (max-width: 768px) {
+      :root {
+        --font-size-base: 14px;
+      }
+      
+      .app-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+      }
+      
+      .header-left, .header-center, .header-right {
+        width: 100%;
+        justify-content: center;
+      }
+      
       .controls {
         flex-direction: column;
         align-items: stretch;
@@ -364,43 +547,92 @@
       .habits-grid {
         grid-template-columns: 1fr;
       }
+
+      .tracker-container {
+        padding: 15px;
+      }
+      
+      .category-filter {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .category-filter select {
+        max-width: 100%;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="user-bar" style="display: none;">
-    <div class="user-info">
-      <span id="userName"></span>
-      <div class="badge-container" id="badgeContainer"></div>
+  <header class="app-header" style="display: none;">
+    <div class="header-left">
+      <span class="user-greeting" id="userGreeting"></span>
     </div>
-    <button class="theme-toggle" id="themeToggle">🌓</button>
-  </div>
+    <div class="header-center">
+      <h1 class="app-title">Habit Tracker</h1>
+    </div>
+    <div class="header-right">
+      <div class="badge" id="activeHabitsBadge"></div>
+      <button class="theme-toggle" id="themeToggle">🌓</button>
+      <button id="logoutBtn">Logout</button>
+    </div>
+  </header>
 
   <div id="authModal">
     <div class="auth-box">
-      <h2>Welcome Back</h2>
-      <input type="email" id="emailInput" placeholder="Email" />
-      <input type="password" id="passwordInput" placeholder="Password" />
-      <button id="loginBtn">Login</button>
-      <button id="registerBtn">Register</button>
+      <div class="auth-tabs">
+        <div class="auth-tab active" id="loginTab">Login</div>
+        <div class="auth-tab" id="registerTab">Register</div>
+      </div>
+      
+      <div id="loginForm">
+        <h2>Login</h2>
+        <input type="email" id="emailInput" placeholder="Email" />
+        <input type="password" id="passwordInput" placeholder="Password" />
+        <button id="loginBtn">Login</button>
+      </div>
+      
+      <div id="registerForm" style="display: none;">
+        <h2>Register</h2>
+        <input type="text" id="nicknameInput" placeholder="Nickname" />
+        <input type="email" id="emailRegisterInput" placeholder="Email" />
+        <input type="password" id="passwordRegisterInput" placeholder="Password" />
+        <button id="registerBtn">Register</button>
+      </div>
     </div>
   </div>
-
-  <header>
-    <h1>Daily Habit Tracker</h1>
-  </header>
-
-  <button id="logoutBtn" style="display: none;">Logout</button>
 
   <div class="controls" style="display: none;">
     <div class="input-group">
       <input type="text" id="newHabit" placeholder="New Habit (e.g. Drink Water)">
+      <select id="habitCategory">
+        <option value="Health">Health</option>
+        <option value="Productivity">Productivity</option>
+        <option value="Learning">Learning</option>
+        <option value="Mindfulness">Mindfulness</option>
+        <option value="Other">Other</option>
+      </select>
       <button id="addHabit">Add Habit</button>
     </div>
     <div class="month-selector">
       <button id="prevMonth">&lt;</button>
-      <select id="monthSelect"></select>
-      <select id="yearSelect"></select>
+      <select id="monthSelect">
+        <option value="0">January</option>
+        <option value="1">February</option>
+        <option value="2">March</option>
+        <option value="3">April</option>
+        <option value="4">May</option>
+        <option value="5">June</option>
+        <option value="6">July</option>
+        <option value="7">August</option>
+        <option value="8">September</option>
+        <option value="9">October</option>
+        <option value="10">November</option>
+        <option value="11">December</option>
+      </select>
+      <select id="yearSelect">
+        <!-- Years will be populated by JavaScript -->
+      </select>
       <button id="nextMonth">&gt;</button>
     </div>
   </div>
@@ -411,12 +643,34 @@
   </div>
 
   <div class="tracker-container" id="trackerContainer">
+    <div class="view-toggle">
+      <button class="view-btn active" data-view="monthly">Monthly View</button>
+      <button class="view-btn" data-view="weekly">Weekly View</button>
+    </div>
+    
+    <div class="category-filter">
+      <label for="filterCategory">Filter by Category:</label>
+      <select id="filterCategory">
+        <option value="all" selected>All Categories</option>
+        <option value="Health">Health</option>
+        <option value="Productivity">Productivity</option>
+        <option value="Learning">Learning</option>
+        <option value="Mindfulness">Mindfulness</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+    
+    <div class="stats-container" id="statsContainer">
+      <!-- Stats cards will be inserted here -->
+    </div>
+    
     <div class="empty-state" id="emptyState">Please log in to view your habits.</div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, setDoc, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, setDoc, doc, deleteDoc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
     const firebaseConfig = {
@@ -435,44 +689,110 @@
 
     // DOM elements
     const authModal = document.getElementById('authModal');
+    const loginTab = document.getElementById('loginTab');
+    const registerTab = document.getElementById('registerTab');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
     const emailInput = document.getElementById('emailInput');
     const passwordInput = document.getElementById('passwordInput');
+    const nicknameInput = document.getElementById('nicknameInput');
+    const emailRegisterInput = document.getElementById('emailRegisterInput');
+    const passwordRegisterInput = document.getElementById('passwordRegisterInput');
     const loginBtn = document.getElementById('loginBtn');
     const registerBtn = document.getElementById('registerBtn');
     const logoutBtn = document.getElementById('logoutBtn');
     const controls = document.querySelector('.controls');
     const trackerContainer = document.getElementById('trackerContainer');
     const emptyState = document.getElementById('emptyState');
-    const userBar = document.querySelector('.user-bar');
-    const userName = document.getElementById('userName');
+    const appHeader = document.querySelector('.app-header');
+    const userGreeting = document.getElementById('userGreeting');
     const themeToggle = document.getElementById('themeToggle');
-    const badgeContainer = document.getElementById('badgeContainer');
+    const activeHabitsBadge = document.getElementById('activeHabitsBadge');
     const habitTabs = document.getElementById('habitTabs');
+    const monthSelect = document.getElementById('monthSelect');
+    const yearSelect = document.getElementById('yearSelect');
+    const newHabitInput = document.getElementById('newHabit');
+    const habitCategory = document.getElementById('habitCategory');
+    const filterCategory = document.getElementById('filterCategory');
+    const viewToggle = document.querySelector('.view-toggle');
+    const statsContainer = document.getElementById('statsContainer');
+    const addHabitBtn = document.getElementById('addHabit');
 
-    const habitColors = ['#10b981', '#6366f1', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+    // Generate random non-repeating colors
+    const generateRandomColors = (count) => {
+      const colors = [];
+      const hueStep = 360 / count;
+      
+      for (let i = 0; i < count; i++) {
+        const hue = Math.floor(i * hueStep);
+        const saturation = 70 + Math.floor(Math.random() * 30);
+        const lightness = 50 + Math.floor(Math.random() * 20);
+        colors.push(`hsl(${hue}, ${saturation}%, ${lightness}%)`);
+      }
+      
+      // Shuffle the colors
+      for (let i = colors.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [colors[i], colors[j]] = [colors[j], colors[i]];
+      }
+      
+      return colors;
+    };
+
+    let habitColors = generateRandomColors(20);
     let colorIndex = 0;
-    const getNextColor = () => habitColors[colorIndex++ % habitColors.length];
+    const getNextColor = () => {
+      if (colorIndex >= habitColors.length) {
+        habitColors = generateRandomColors(20);
+        colorIndex = 0;
+      }
+      return habitColors[colorIndex++];
+    };
 
     let currentUser = null;
     let currentMonth = new Date().getMonth();
     let currentYear = new Date().getFullYear();
     let habits = [];
     let activeTab = 'active';
+    let currentView = 'monthly';
     let longPressTimer = null;
     let isDragging = false;
     let draggedHabit = null;
     let draggedIndex = null;
+    let userNickname = '';
+    let charts = [];
+    let isUpdating = false;
 
     // Theme handling
     function setTheme(theme) {
       document.documentElement.setAttribute('data-theme', theme);
       localStorage.setItem('theme', theme);
+      themeToggle.textContent = theme === 'dark' ? '🌙' : '☀️';
+      
+      // Update Chart.js colors
+      updateChartColors();
     }
 
     function toggleTheme() {
       const currentTheme = document.documentElement.getAttribute('data-theme');
       const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
       setTheme(newTheme);
+    }
+
+    // Update Chart.js colors when theme changes
+    function updateChartColors() {
+      const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text');
+      const mutedColor = getComputedStyle(document.documentElement).getPropertyValue('--muted');
+      
+      charts.forEach(chart => {
+        if (chart && !chart._destroyed) {
+          chart.options.scales.x.grid.color = mutedColor;
+          chart.options.scales.y.grid.color = mutedColor;
+          chart.options.scales.x.ticks.color = textColor;
+          chart.options.scales.y.ticks.color = textColor;
+          chart.update();
+        }
+      });
     }
 
     // Initialize theme from localStorage or prefer-color-scheme
@@ -483,43 +803,10 @@
 
     themeToggle.addEventListener('click', toggleTheme);
 
-    // Achievement badges
-    function checkForAchievements(habits) {
-      const badges = [];
-      
-      // Check for streaks
-      const has7DayStreak = habits.some(h => calculateCurrentStreak(h.days) >= 7);
-      if (has7DayStreak) {
-        badges.push({ text: "7-Day Streak", type: "success" });
-      }
-      
-      // Check for perfect month
-      const currentMonthHabits = habits.filter(h => 
-        h.days.some(d => d.startsWith(`${currentYear}-${currentMonth}`))
-      );
-      if (currentMonthHabits.length > 0) {
-        badges.push({ text: `${currentMonthHabits.length} Habits`, type: "info" });
-      }
-      
-      // Check for new habits
-      const newHabits = habits.filter(h => 
-        new Date(h.createdAt?.toDate() || new Date()) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-      );
-      if (newHabits.length > 0) {
-        badges.push({ text: `${newHabits.length} New`, type: "warning" });
-      }
-      
-      return badges;
-    }
-
-    function renderBadges(badges) {
-      badgeContainer.innerHTML = '';
-      badges.forEach(badge => {
-        const badgeEl = document.createElement('div');
-        badgeEl.className = `badge ${badge.type}`;
-        badgeEl.textContent = badge.text;
-        badgeContainer.appendChild(badgeEl);
-      });
+    // Update active habits badge
+    function updateActiveHabitsBadge(habits) {
+      const activeHabits = habits.filter(h => !h.archived).length;
+      activeHabitsBadge.textContent = `${activeHabits} Active Habits`;
     }
 
     // Streak calculation
@@ -567,6 +854,151 @@
       }
       
       return longest;
+    }
+
+    // Calculate completion rate for a habit
+    function calculateCompletionRate(habit, year, month) {
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const completedDays = habit.days?.filter(d => {
+        const date = new Date(d);
+        return date.getFullYear() === year && date.getMonth() === month;
+      }).length || 0;
+      
+      return Math.round((completedDays / daysInMonth) * 100);
+    }
+
+    // Render statistics
+    function renderStatistics() {
+      statsContainer.innerHTML = '';
+      
+      // Destroy existing charts
+      charts.forEach(chart => {
+        if (chart && !chart._destroyed) {
+          chart.destroy();
+          chart._destroyed = true;
+        }
+      });
+      charts = [];
+      
+      if (habits.length === 0) return;
+      
+      // Create chart containers first
+      statsContainer.innerHTML = `
+        <div class="stat-card">
+          <h3>Overall Completion</h3>
+          <p id="completionPercent">0%</p>
+          <div class="chart-container">
+            <canvas id="completionChart"></canvas>
+          </div>
+        </div>
+        <div class="stat-card">
+          <h3>Habits by Category</h3>
+          <div class="chart-container">
+            <canvas id="categoryChart"></canvas>
+          </div>
+        </div>
+        <div class="stat-card">
+          <h3>Current Streak</h3>
+          <p id="currentStreak">0 days</p>
+        </div>
+        <div class="stat-card">
+          <h3>Longest Streak</h3>
+          <p id="longestStreak">0 days</p>
+        </div>
+      `;
+
+      // Calculate stats
+      const completedHabits = habits.filter(h => !h.archived && h.days?.some(d => 
+        new Date(d).getMonth() === currentMonth && 
+        new Date(d).getFullYear() === currentYear
+      )).length;
+      
+      const totalHabits = habits.filter(h => !h.archived).length;
+      const overallCompletion = totalHabits > 0 ? Math.round((completedHabits / totalHabits) * 100) : 0;
+      
+      // Update completion percentage
+      document.getElementById('completionPercent').textContent = `${overallCompletion}%`;
+      
+      // Update streaks
+      const activeHabits = habits.filter(h => !h.archived);
+      const currentStreaks = activeHabits.map(h => calculateCurrentStreak(h.days));
+      const longestStreaks = activeHabits.map(h => calculateLongestStreak(h.days));
+      
+      document.getElementById('currentStreak').textContent = `${currentStreaks.length > 0 ? Math.max(...currentStreaks) : 0} days`;
+      document.getElementById('longestStreak').textContent = `${longestStreaks.length > 0 ? Math.max(...longestStreaks) : 0} days`;
+      
+      // Only create charts if canvas elements exist
+      setTimeout(() => {
+        const completionCanvas = document.getElementById('completionChart');
+        const categoryCanvas = document.getElementById('categoryChart');
+        
+        if (completionCanvas) {
+          const completionCtx = completionCanvas.getContext('2d');
+          const completionChart = new Chart(completionCtx, {
+            type: 'doughnut',
+            data: {
+              labels: ['Completed', 'Remaining'],
+              datasets: [{
+                data: [overallCompletion, 100 - overallCompletion],
+                backgroundColor: [
+                  getComputedStyle(document.documentElement).getPropertyValue('--primary'),
+                  getComputedStyle(document.documentElement).getPropertyValue('--muted')
+                ],
+                borderWidth: 0
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  position: 'bottom',
+                  labels: {
+                    color: getComputedStyle(document.documentElement).getPropertyValue('--text')
+                  }
+                }
+              }
+            }
+          });
+          charts.push(completionChart);
+        }
+        
+        if (categoryCanvas) {
+          const categories = {};
+          habits.filter(h => !h.archived).forEach(habit => {
+            const category = habit.category || 'Other';
+            categories[category] = (categories[category] || 0) + 1;
+          });
+          
+          const categoryCtx = categoryCanvas.getContext('2d');
+          const categoryChart = new Chart(categoryCtx, {
+            type: 'pie',
+            data: {
+              labels: Object.keys(categories),
+              datasets: [{
+                data: Object.values(categories),
+                backgroundColor: [
+                  '#4f46e5', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#6366f1'
+                ],
+                borderWidth: 0
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  position: 'bottom',
+                  labels: {
+                    color: getComputedStyle(document.documentElement).getPropertyValue('--text')
+                  }
+                }
+              }
+            }
+          });
+          charts.push(categoryChart);
+        }
+      }, 100);
     }
 
     // Drag and drop functionality
@@ -688,16 +1120,24 @@
       setTimeout(() => container.remove(), 3000);
     }
 
-    function initDateSelectors() {
-      const monthSelect = document.getElementById('monthSelect');
-      const yearSelect = document.getElementById('yearSelect');
-      const months = [...Array(12).keys()].map(i => new Date(0, i).toLocaleString('default', { month: 'long' }));
+    function showToast(message) {
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
 
-      monthSelect.innerHTML = months.map((m, i) =>
-        `<option value="${i}" ${i === currentMonth ? 'selected' : ''}>${m}</option>`).join('');
+    function initDateSelectors() {
+      // Set current month
+      monthSelect.value = currentMonth;
+      
+      // Populate years (current year -2 to +2)
+      yearSelect.innerHTML = '';
       for (let y = currentYear - 2; y <= currentYear + 2; y++) {
         const opt = document.createElement('option');
-        opt.value = y; opt.textContent = y;
+        opt.value = y;
+        opt.textContent = y;
         if (y === currentYear) opt.selected = true;
         yearSelect.appendChild(opt);
       }
@@ -730,28 +1170,54 @@
     }
 
     async function loadHabits() {
-      if (!currentUser) return;
-      const snapshot = await getDocs(collection(db, "users", currentUser.uid, "habits"));
-      habits = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      if (!currentUser || isUpdating) return;
+      isUpdating = true;
       
-      // Check for achievements
-      const badges = checkForAchievements(habits);
-      renderBadges(badges);
-      
-      renderHabits();
+      try {
+        // Show loading state
+        emptyState.style.display = 'block';
+        emptyState.textContent = 'Loading habits...';
+        
+        const snapshot = await getDocs(collection(db, "users", currentUser.uid, "habits"));
+        habits = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        updateActiveHabitsBadge(habits);
+        renderStatistics();
+        renderHabits();
+      } catch (err) {
+        showToast("Error loading habits: " + err.message);
+      } finally {
+        isUpdating = false;
+      }
     }
 
     function renderHabits() {
+      if (!trackerContainer) return;
+      
       trackerContainer.innerHTML = '';
       
       const grid = document.createElement('div');
       grid.className = 'habits-grid';
       trackerContainer.appendChild(grid);
       
-      const filteredHabits = habits.filter(h => 
-        (activeTab === 'active' && !h.archived) || 
-        (activeTab === 'archived' && h.archived)
-      );
+      // Add view toggle back
+      if (viewToggle) trackerContainer.insertBefore(viewToggle, grid);
+      if (filterCategory?.parentElement) trackerContainer.insertBefore(filterCategory.parentElement, grid);
+      
+      if (!habits || !Array.isArray(habits)) {
+        emptyState.style.display = 'block';
+        emptyState.textContent = 'Loading habits...';
+        grid.appendChild(emptyState);
+        return;
+      }
+      
+      const filteredHabits = habits.filter(h => {
+        const tabMatch = (activeTab === 'active' && !h.archived) || 
+                         (activeTab === 'archived' && h.archived);
+        const categoryMatch = filterCategory.value === 'all' || 
+                             (h.category || 'Other') === filterCategory.value;
+        return tabMatch && categoryMatch;
+      });
       
       if (!filteredHabits.length) {
         emptyState.style.display = 'block';
@@ -765,106 +1231,238 @@
 
       const today = new Date();
 
-      filteredHabits.forEach((habit, index) => {
+      filteredHabits.forEach((habit) => {
         const card = document.createElement('div');
         card.className = `habit-card ${habit.archived ? 'archived' : ''}`;
-        card.draggable = true;
         card.dataset.id = habit.id;
-        
-        card.addEventListener('dragstart', () => {
-          card.classList.add('dragging');
-          draggedHabit = habit;
-          draggedIndex = index;
-        });
-        
-        card.addEventListener('dragend', () => {
-          card.classList.remove('dragging');
-        });
-
-        const streak = calculateCurrentStreak(habit.days);
-        const longestStreak = calculateLongestStreak(habit.days);
 
         const header = document.createElement('div');
         header.className = 'habit-header';
         header.style.backgroundColor = habit.color;
+        header.dataset.habitId = habit.id;
+        
         header.innerHTML = `
-          <span>${habit.name}</span>
-          ${streak > 0 ? `<span class="streak" title="Current streak: ${streak} days\nLongest streak: ${longestStreak} days">${streak}</span>` : ''}
+          <div>
+            <span>${habit.name}</span>
+            <div class="habit-category">${habit.category || 'Other'}</div>
+          </div>
           <div class="habit-actions">
-            <button class="archive-btn" title="${habit.archived ? 'Unarchive' : 'Archive'}">${habit.archived ? '↻' : '🗄'}</button>
+            <button class="archive-btn" title="${habit.archived ? 'Unarchive' : 'Archive'}">
+              ${habit.archived ? '↻' : '🗄'}
+            </button>
             <button class="delete-btn" title="Delete">✕</button>
           </div>
         `;
 
         const calendar = document.createElement('div');
         calendar.className = 'calendar';
-        const weekdays = document.createElement('div');
-        weekdays.className = 'weekdays';
-        weekdays.innerHTML = ['S','M','T','W','T','F','S'].map(d => `<div>${d}</div>`).join('');
+        
+        if (currentView === 'monthly') {
+          const weekdays = document.createElement('div');
+          weekdays.className = 'weekdays';
+          weekdays.innerHTML = ['S','M','T','W','T','F','S'].map(d => `<div>${d}</div>`).join('');
 
-        const daysGrid = document.createElement('div');
-        daysGrid.className = 'days-grid';
+          const daysGrid = document.createElement('div');
+          daysGrid.className = 'days-grid';
 
-        const firstDay = new Date(currentYear, currentMonth, 1).getDay();
-        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+          const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+          const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
-        for (let i = 0; i < firstDay; i++) {
-          daysGrid.innerHTML += `<div class="day-cell empty"></div>`;
-        }
-
-        for (let day = 1; day <= daysInMonth; day++) {
-          const dateStr = `${currentYear}-${currentMonth}-${day}`;
-          const isFuture = currentYear === today.getFullYear() && currentMonth === today.getMonth() && day > today.getDate();
-          const isChecked = habit.days?.includes(dateStr);
-
-          const cell = document.createElement('div');
-          cell.className = 'day-cell';
-          if (isFuture) cell.classList.add('future');
-          if (isChecked) {
-            cell.classList.add('checked');
-            cell.style.backgroundColor = habit.color;
+          for (let i = 0; i < firstDay; i++) {
+            daysGrid.innerHTML += `<div class="day-cell empty"></div>`;
           }
 
-          cell.textContent = day;
-          if (!isFuture) {
-            cell.addEventListener('click', async () => {
-              habit.days = habit.days || [];
-              const index = habit.days.indexOf(dateStr);
-              if (index === -1) {
-                habit.days.push(dateStr);
-                if (habit.days.length % 7 === 0) {
-                  createConfetti();
+          for (let day = 1; day <= daysInMonth; day++) {
+            const dateStr = `${currentYear}-${currentMonth + 1}-${day}`;
+            const isFuture = currentYear === today.getFullYear() && currentMonth === today.getMonth() && day > today.getDate();
+            const isChecked = habit.days?.includes(dateStr);
+
+            const cell = document.createElement('div');
+            cell.className = 'day-cell';
+            if (isFuture) cell.classList.add('future');
+            if (isChecked) {
+              cell.classList.add('checked');
+              cell.style.backgroundColor = habit.color;
+            }
+
+            cell.textContent = day;
+            if (!isFuture) {
+              cell.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                
+                // Get the correct habit reference
+                const habitId = e.target.closest('.habit-card').dataset.id;
+                const habitToUpdate = habits.find(h => h.id === habitId);
+                if (!habitToUpdate) return;
+                
+                habitToUpdate.days = habitToUpdate.days || [];
+                const index = habitToUpdate.days.indexOf(dateStr);
+                
+                try {
+                  if (index === -1) {
+                    habitToUpdate.days.push(dateStr);
+                    if (habitToUpdate.days.length % 7 === 0) {
+                      createConfetti();
+                    }
+                  } else {
+                    habitToUpdate.days.splice(index, 1);
+                  }
+                  
+                  // Update Firebase
+                  await setDoc(doc(db, "users", currentUser.uid, "habits", habitId), habitToUpdate);
+                  
+                  // Update UI
+                  cell.classList.toggle('checked');
+                  cell.style.backgroundColor = cell.classList.contains('checked') ? habit.color : '';
+                } catch (err) {
+                  showToast("Error updating habit: " + err.message);
                 }
-              } else {
-                habit.days.splice(index, 1);
-              }
-              await setDoc(doc(db, "users", currentUser.uid, "habits", habit.id), habit);
-              loadHabits();
-            });
+              });
+            }
+
+            daysGrid.appendChild(cell);
           }
 
-          daysGrid.appendChild(cell);
+          calendar.appendChild(weekdays);
+          calendar.appendChild(daysGrid);
+        } else {
+          // Weekly view
+          const weekStart = new Date(today);
+          weekStart.setDate(today.getDate() - today.getDay());
+          
+          const weekdaysHeader = document.createElement('div');
+          weekdaysHeader.className = 'weekdays';
+          weekdaysHeader.innerHTML = ['S','M','T','W','T','F','S'].map(d => `<div>${d}</div>`).join('');
+          
+          const daysGrid = document.createElement('div');
+          daysGrid.className = 'days-grid';
+          
+          for (let i = 0; i < 7; i++) {
+            const currentDay = new Date(weekStart);
+            currentDay.setDate(weekStart.getDate() + i);
+            
+            const dateStr = `${currentDay.getFullYear()}-${currentDay.getMonth() + 1}-${currentDay.getDate()}`;
+            const isFuture = currentDay > today;
+            const isChecked = habit.days?.includes(dateStr);
+            
+            const cell = document.createElement('div');
+            cell.className = 'day-cell';
+            if (isFuture) cell.classList.add('future');
+            if (isChecked) {
+              cell.classList.add('checked');
+              cell.style.backgroundColor = habit.color;
+            }
+            
+            cell.textContent = currentDay.getDate();
+            if (!isFuture) {
+              cell.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                
+                // Get the correct habit reference
+                const habitId = e.target.closest('.habit-card').dataset.id;
+                const habitToUpdate = habits.find(h => h.id === habitId);
+                if (!habitToUpdate) return;
+                
+                habitToUpdate.days = habitToUpdate.days || [];
+                const index = habitToUpdate.days.indexOf(dateStr);
+                
+                try {
+                  if (index === -1) {
+                    habitToUpdate.days.push(dateStr);
+                  } else {
+                    habitToUpdate.days.splice(index, 1);
+                  }
+                  
+                  // Update Firebase
+                  await setDoc(doc(db, "users", currentUser.uid, "habits", habitId), habitToUpdate);
+                  
+                  // Update UI
+                  cell.classList.toggle('checked');
+                  cell.style.backgroundColor = cell.classList.contains('checked') ? habit.color : '';
+                } catch (err) {
+                  showToast("Error updating habit: " + err.message);
+                }
+              });
+            }
+            
+            daysGrid.appendChild(cell);
+          }
+          
+          calendar.appendChild(weekdaysHeader);
+          calendar.appendChild(daysGrid);
         }
 
-        calendar.appendChild(weekdays);
-        calendar.appendChild(daysGrid);
         card.appendChild(header);
         card.appendChild(calendar);
         grid.appendChild(card);
 
+        // Archive button event listener
         header.querySelector('.archive-btn').addEventListener('click', async (e) => {
           e.stopPropagation();
-          await updateDoc(doc(db, "users", currentUser.uid, "habits", habit.id), {
-            archived: !habit.archived
-          });
-          loadHabits();
+          e.preventDefault();
+          
+          const habitId = e.target.closest('.habit-header').dataset.habitId;
+          const habitToUpdate = habits.find(h => h.id === habitId);
+          
+          if (!habitToUpdate) return;
+          
+          try {
+            // Show loading state
+            e.target.innerHTML = '...';
+            e.target.disabled = true;
+            
+            // Optimistically update local state
+            habitToUpdate.archived = !habitToUpdate.archived;
+            updateActiveHabitsBadge(habits);
+            renderHabits();
+            
+            // Update Firebase
+            await updateDoc(doc(db, "users", currentUser.uid, "habits", habitId), {
+              archived: habitToUpdate.archived
+            });
+            
+            showToast(`Habit ${habitToUpdate.archived ? 'archived' : 'unarchived'}!`);
+          } catch (err) {
+            // Rollback on error
+            habitToUpdate.archived = !habitToUpdate.archived;
+            updateActiveHabitsBadge(habits);
+            renderHabits();
+            showToast("Error updating habit: " + err.message);
+          }
         });
 
+        // Delete button event listener
         header.querySelector('.delete-btn').addEventListener('click', async (e) => {
           e.stopPropagation();
-          if (confirm(`Are you sure you want to delete "${habit.name}"?`)) {
-            await deleteDoc(doc(db, "users", currentUser.uid, "habits", habit.id));
-            loadHabits();
+          e.preventDefault();
+          
+          const habitId = e.target.closest('.habit-header').dataset.habitId;
+          const habitToDelete = habits.find(h => h.id === habitId);
+          
+          if (!habitToDelete) return;
+          
+          if (confirm(`Are you sure you want to delete "${habitToDelete.name}"?`)) {
+            try {
+              // Show loading state
+              e.target.innerHTML = 'Deleting...';
+              e.target.disabled = true;
+              
+              // Optimistically remove from local state
+              habits = habits.filter(h => h.id !== habitId);
+              updateActiveHabitsBadge(habits);
+              renderHabits();
+              
+              // Delete from Firebase
+              await deleteDoc(doc(db, "users", currentUser.uid, "habits", habitId));
+              
+              showToast(`Habit "${habitToDelete.name}" deleted!`);
+            } catch (err) {
+              // Rollback on error
+              habits.push(habitToDelete);
+              updateActiveHabitsBadge(habits);
+              renderHabits();
+              showToast("Error deleting habit: " + err.message);
+            }
           }
         });
       });
@@ -872,33 +1470,118 @@
       setupDragAndDrop();
     }
 
-    document.getElementById('addHabit').addEventListener('click', async () => {
-      const name = document.getElementById('newHabit').value.trim();
+    addHabitBtn.addEventListener('click', async () => {
+      const name = newHabitInput.value.trim();
       if (!name) return;
+      
+      // Check if habit already exists
+      const habitExists = habits.some(h => h.name.toLowerCase() === name.toLowerCase());
+      if (habitExists) {
+        showToast(`Habit "${name}" already exists!`);
+        return;
+      }
+      
       const newHabit = { 
         name, 
         color: getNextColor(), 
         days: [],
-        createdAt: new Date()
+        category: habitCategory.value,
+        createdAt: new Date(),
+        id: name,
+        archived: false
       };
-      await setDoc(doc(db, "users", currentUser.uid, "habits", name), newHabit);
-      document.getElementById('newHabit').value = '';
-      loadHabits();
+      
+      try {
+        // Show loading state
+        const spinner = document.createElement('div');
+        spinner.className = 'loading-spinner';
+        addHabitBtn.appendChild(spinner);
+        addHabitBtn.disabled = true;
+        
+        // Optimistic update
+        habits.push(newHabit);
+        newHabitInput.value = '';
+        updateActiveHabitsBadge(habits);
+        renderHabits();
+        
+        // Firebase update
+        await setDoc(doc(db, "users", currentUser.uid, "habits", name), newHabit);
+        
+        showToast(`Habit "${name}" added!`);
+      } catch (err) {
+        // Rollback on error
+        habits = habits.filter(h => h.id !== name);
+        updateActiveHabitsBadge(habits);
+        renderHabits();
+        showToast("Error adding habit: " + err.message);
+      } finally {
+        addHabitBtn.disabled = false;
+        const spinner = addHabitBtn.querySelector('.loading-spinner');
+        if (spinner) spinner.remove();
+      }
+    });
+
+    // Allow adding habit with Enter key
+    newHabitInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        addHabitBtn.click();
+      }
+    });
+
+    // View toggle
+    document.querySelectorAll('.view-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentView = btn.dataset.view;
+        renderHabits();
+      });
+    });
+
+    // Category filter
+    filterCategory.addEventListener('change', () => {
+      renderHabits();
+    });
+
+    // Auth tab switching
+    loginTab.addEventListener('click', () => {
+      loginTab.classList.add('active');
+      registerTab.classList.remove('active');
+      loginForm.style.display = 'block';
+      registerForm.style.display = 'none';
+    });
+
+    registerTab.addEventListener('click', () => {
+      registerTab.classList.add('active');
+      loginTab.classList.remove('active');
+      registerForm.style.display = 'block';
+      loginForm.style.display = 'none';
     });
 
     loginBtn.addEventListener('click', async () => {
       try {
         await signInWithEmailAndPassword(auth, emailInput.value, passwordInput.value);
       } catch (err) {
-        alert("Login error: " + err.message);
+        showToast("Login error: " + err.message);
       }
     });
 
     registerBtn.addEventListener('click', async () => {
       try {
-        await createUserWithEmailAndPassword(auth, emailInput.value, passwordInput.value);
+        const nickname = nicknameInput.value.trim();
+        if (!nickname) {
+          showToast("Please enter a nickname");
+          return;
+        }
+        
+        const userCredential = await createUserWithEmailAndPassword(auth, emailRegisterInput.value, passwordRegisterInput.value);
+        // Store nickname in Firestore
+        await setDoc(doc(db, "users", userCredential.user.uid), {
+          nickname: nickname
+        });
+        userNickname = nickname;
       } catch (err) {
-        alert("Register error: " + err.message);
+        showToast("Register error: " + err.message);
       }
     });
 
@@ -914,20 +1597,40 @@
       });
     });
 
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
       currentUser = user;
       const isLoggedIn = !!user;
       authModal.style.display = isLoggedIn ? 'none' : 'flex';
       controls.style.display = isLoggedIn ? 'flex' : 'none';
-      logoutBtn.style.display = isLoggedIn ? 'block' : 'none';
-      userBar.style.display = isLoggedIn ? 'flex' : 'none';
+      appHeader.style.display = isLoggedIn ? 'flex' : 'none';
       habitTabs.style.display = isLoggedIn ? 'flex' : 'none';
       
       if (isLoggedIn) {
-        userName.textContent = user.email;
+        // Get user nickname
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          userNickname = userDoc.data().nickname || user.email;
+        } else {
+          userNickname = user.email;
+        }
+        userGreeting.textContent = `Hi, ${userNickname}`;
+        
+        // Initialize with current month/year
+        const today = new Date();
+        currentMonth = today.getMonth();
+        currentYear = today.getFullYear();
+        
         initDateSelectors();
         setupLongPress();
         loadHabits();
+      } else {
+        // Reset form when logging out
+        loginTab.click();
+        emailInput.value = '';
+        passwordInput.value = '';
+        nicknameInput.value = '';
+        emailRegisterInput.value = '';
+        passwordRegisterInput.value = '';
       }
     });
   </script>
