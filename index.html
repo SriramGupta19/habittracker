@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>Daily Habit Tracker</title>
+  <title>Habit Tracker</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css" rel="stylesheet">
   <style>
@@ -52,36 +52,46 @@
       color: var(--text);
       min-height: 100vh;
       transition: background-color 0.3s, color 0.3s;
+      overflow-x: hidden;
     }
 
     .app-header {
       display: flex;
+      flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
-      padding: 20px;
+      padding: 15px;
       background-color: var(--card-bg);
       box-shadow: var(--shadow);
-      margin-bottom: 20px;
+      margin-bottom: 15px;
+      gap: 10px;
     }
 
     .header-left {
       display: flex;
       align-items: center;
-      gap: 15px;
+      gap: 10px;
+      order: 1;
+      flex: 1 0 100%;
     }
 
     .user-greeting {
       font-weight: 600;
-      font-size: 1.2rem;
+      font-size: 1.1rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 180px;
     }
 
     .header-center {
-      flex: 1;
+      order: 3;
+      flex: 1 0 100%;
       text-align: center;
     }
 
     .app-title {
-      font-size: 2.2rem;
+      font-size: 1.8rem;
       color: var(--primary);
       margin: 0;
     }
@@ -89,15 +99,19 @@
     .header-right {
       display: flex;
       align-items: center;
-      gap: 15px;
+      gap: 10px;
+      order: 2;
+      flex: 1;
+      justify-content: flex-end;
     }
 
     .badge {
-      font-size: 1rem;
-      padding: 6px 12px;
+      font-size: 0.9rem;
+      padding: 5px 10px;
       border-radius: 12px;
       background-color: var(--accent);
       color: white;
+      white-space: nowrap;
     }
 
     .theme-toggle {
@@ -105,8 +119,9 @@
       border: none;
       color: var(--text);
       cursor: pointer;
-      font-size: 1.5rem;
+      font-size: 1.3rem;
       transition: transform 0.2s;
+      padding: 5px;
     }
 
     .theme-toggle:hover {
@@ -118,9 +133,9 @@
       color: white;
       border: none;
       border-radius: 6px;
-      padding: 8px 16px;
+      padding: 8px 12px;
       font-weight: 500;
-      font-size: 1rem;
+      font-size: 0.9rem;
       cursor: pointer;
       transition: opacity 0.2s;
     }
@@ -139,64 +154,137 @@
       align-items: center;
       justify-content: center;
       z-index: 999;
+      padding: 15px;
     }
 
     .auth-box {
+      position: relative;
+      overflow: hidden;
       background: var(--card-bg);
-      padding: 40px;
+      padding: 30px;
       border-radius: 12px;
       box-shadow: var(--shadow);
       text-align: center;
       width: 100%;
-      max-width: 400px;
+      max-width: 380px;
+    }
+
+    .auth-decoration {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 120px;
+      height: 120px;
+      pointer-events: none;
+    }
+
+    .decoration-circle,
+    .decoration-square,
+    .decoration-triangle {
+      position: absolute;
+      opacity: 0.1;
+    }
+
+    .decoration-circle {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background-color: var(--primary);
+      top: -20px;
+      right: -20px;
+    }
+
+    .decoration-square {
+      width: 40px;
+      height: 40px;
+      background-color: var(--accent);
+      top: 40px;
+      right: 30px;
+      transform: rotate(15deg);
+    }
+
+    .decoration-triangle {
+      width: 0;
+      height: 0;
+      border-left: 25px solid transparent;
+      border-right: 25px solid transparent;
+      border-bottom: 50px solid var(--secondary);
+      top: 10px;
+      right: 60px;
+      transform: rotate(-15deg);
     }
 
     .auth-box h2 {
       font-size: 1.8rem;
-      margin-bottom: 20px;
+      margin-bottom: 25px;
+      color: var(--primary);
+    }
+
+    .input-group {
+      position: relative;
+      margin-bottom: 15px;
     }
 
     .auth-box input {
       width: 100%;
-      padding: 14px;
-      margin: 12px 0;
+      padding: 12px;
+      margin: 10px 0;
       border-radius: 6px;
       border: 1px solid var(--muted);
-      font-size: 1.1rem;
+      font-size: 1rem;
       background-color: var(--card-bg);
       color: var(--text);
     }
 
-    .auth-box button {
-      width: 100%;
-      padding: 14px;
-      margin-top: 12px;
-      background: var(--primary);
-      color: var(--white);
-      font-weight: 600;
+    .input-icon {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
       font-size: 1.1rem;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background-color 0.2s;
+      opacity: 0.7;
     }
 
-    .auth-box button:hover {
-      background: var(--secondary);
+    .auth-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 10px;
+      background: var(--primary);
+      color: white;
+    }
+
+    .auth-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .auth-button .button-icon {
+      margin-left: 8px;
+      font-weight: bold;
     }
 
     .auth-tabs {
       display: flex;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
     }
 
     .auth-tab {
       flex: 1;
-      padding: 12px;
+      padding: 10px;
       cursor: pointer;
       border-bottom: 2px solid var(--muted);
-      font-size: 1.1rem;
+      font-size: 1rem;
       transition: all 0.2s;
+      position: relative;
     }
 
     .auth-tab.active {
@@ -204,46 +292,109 @@
       font-weight: bold;
     }
 
+    .auth-tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: var(--primary);
+      border-radius: 3px;
+      animation: tabSlide 0.3s ease-out;
+    }
+
+    @keyframes tabSlide {
+      from { transform: scaleX(0); }
+      to { transform: scaleX(1); }
+    }
+
+    #loginForm {
+      display: block;
+    }
+
+    #registerForm {
+      display: none;
+    }
+
     /* App layout */
     .controls, .tracker-container {
-      max-width: 1200px;
-      margin: 20px auto;
-      padding: 20px;
+      width: calc(100% - 30px);
+      margin: 15px auto;
+      padding: 15px;
       background: var(--card-bg);
-      border-radius: 10px;
+      border-radius: 8px;
       box-shadow: var(--shadow);
-      font-size: 1.1rem;
+      font-size: 1rem;
     }
 
     .controls {
       display: flex;
-      flex-wrap: wrap;
+      flex-direction: column;
       gap: 15px;
-      justify-content: space-between;
     }
 
     .input-group {
       display: flex;
-      flex-grow: 1;
+      flex-direction: column;
       gap: 10px;
     }
 
+    /* Month selector styles */
     .month-selector {
       display: flex;
-      gap: 10px;
       align-items: center;
-      font-size: 1.1rem;
+      justify-content: center;
+      gap: 5px;
+      margin: 10px 0;
+    }
+
+    .month-nav-btn {
+      background: var(--day-cell-bg);
+      border: none;
+      border-radius: 6px;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1rem;
+      color: var(--text);
+      transition: all 0.2s;
+    }
+
+    .month-nav-btn:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    .month-year-display {
+      display: flex;
+      gap: 5px;
+    }
+
+    .compact-select {
+      padding: 5px 8px;
+      font-size: 0.85rem;
+      border-radius: 6px;
+      border: 1px solid var(--muted);
+      background: var(--card-bg);
+      color: var(--text);
+      min-width: 75px;
+      height: 30px;
     }
 
     input, select, button {
-      padding: 12px;
+      padding: 10px;
       font-family: inherit;
-      font-size: 1.1rem;
+      font-size: 1rem;
       border: 1px solid var(--muted);
       border-radius: 6px;
       background-color: var(--card-bg);
       color: var(--text);
       transition: border-color 0.2s;
+      width: 100%;
     }
 
     input:focus, select:focus {
@@ -272,38 +423,21 @@
       cursor: not-allowed;
     }
 
-    /* Loading spinner */
-    .loading-spinner {
-      border: 3px solid rgba(255,255,255,0.3);
-      border-radius: 50%;
-      border-top: 3px solid var(--white);
-      width: 20px;
-      height: 20px;
-      animation: spin 1s linear infinite;
-      display: inline-block;
-      margin-left: 10px;
-      vertical-align: middle;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    /* View Toggle */
+    /* View toggle styles */
     .view-toggle {
       display: flex;
       justify-content: center;
-      gap: 10px;
-      margin-bottom: 20px;
+      gap: 5px;
+      margin-bottom: 10px;
     }
 
     .view-btn {
-      padding: 8px 16px;
-      border-radius: 20px;
+      padding: 5px 12px;
+      border-radius: 15px;
       background: var(--day-cell-bg);
       border: none;
       cursor: pointer;
+      font-size: 0.8rem;
       transition: all 0.2s;
     }
 
@@ -314,67 +448,74 @@
 
     /* Category Filter */
     .category-filter {
-      margin-bottom: 20px;
+      margin-bottom: 15px;
       display: flex;
-      gap: 10px;
+      flex-direction: row;
       align-items: center;
+      gap: 8px;
+    }
+
+    .category-filter label {
+      font-size: 0.8rem;
+      margin-bottom: 0;
     }
 
     .category-filter select {
-      flex: 1;
-      max-width: 200px;
+      padding: 8px;
+      font-size: 0.9rem;
     }
 
     /* Stats Container */
     .stats-container {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px;
-      margin-bottom: 30px;
+      grid-template-columns: 1fr;
+      gap: 15px;
+      margin-bottom: 20px;
     }
 
     .stat-card {
       background: var(--card-bg);
-      border-radius: 10px;
-      padding: 20px;
+      border-radius: 8px;
+      padding: 15px;
       box-shadow: var(--shadow);
     }
 
     .stat-card h3 {
       margin-top: 0;
       color: var(--muted);
-      font-size: 1rem;
+      font-size: 0.9rem;
     }
 
     .stat-card p {
-      font-size: 2rem;
+      font-size: 1.5rem;
       font-weight: bold;
       margin: 10px 0 0;
     }
 
     .chart-container {
-      height: 300px;
-      margin-top: 20px;
+      height: 250px;
+      margin-top: 15px;
     }
 
     /* Habits grid */
     .habits-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(300px, 1fr));
-      gap: 25px;
+      grid-template-columns: 1fr;
+      gap: 15px;
     }
 
     .habit-card {
       background: var(--card-bg);
-      border-radius: 10px;
+      border-radius: 8px;
       overflow: hidden;
       box-shadow: var(--shadow);
       transition: transform 0.2s, box-shadow 0.2s;
+      min-width: 0;
     }
 
     .habit-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      transform: translateY(-3px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.1);
     }
 
     .habit-card.dragging {
@@ -388,17 +529,17 @@
     }
 
     .habit-header {
-      padding: 18px;
+      padding: 15px;
       color: white;
       display: flex;
       justify-content: space-between;
       font-weight: bold;
-      font-size: 1.2rem;
+      font-size: 1.1rem;
     }
 
     .habit-actions {
       display: flex;
-      gap: 10px;
+      gap: 8px;
     }
 
     .habit-actions button {
@@ -406,9 +547,10 @@
       border: none;
       color: white;
       cursor: pointer;
-      font-size: 1.1rem;
+      font-size: 1rem;
       padding: 4px;
       transition: transform 0.2s;
+      min-width: 24px;
     }
 
     .habit-actions button:hover {
@@ -416,21 +558,21 @@
     }
 
     .calendar {
-      padding: 18px;
+      padding: 15px;
     }
 
     .weekdays, .days-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       text-align: center;
-      gap: 6px;
-      font-size: 1.1rem;
+      gap: 4px;
+      font-size: 0.9rem;
     }
 
     .day-cell {
       background-color: var(--day-cell-bg);
-      border-radius: 6px;
-      padding: 12px 0;
+      border-radius: 4px;
+      padding: 8px 0;
       cursor: pointer;
       font-weight: 500;
       transition: all 0.2s;
@@ -453,25 +595,26 @@
 
     .empty-state {
       text-align: center;
-      padding: 40px;
+      padding: 30px;
       color: var(--muted);
       grid-column: 1 / -1;
-      font-size: 1.2rem;
+      font-size: 1rem;
     }
 
+    /* Make sure the tabs are consistent */
     .tabs {
       display: flex;
       justify-content: center;
-      margin-bottom: 25px;
-      gap: 15px;
+      margin-bottom: 10px;
+      gap: 5px;
     }
 
     .tab {
-      padding: 10px 20px;
-      border-radius: 20px;
+      padding: 5px 12px;
+      border-radius: 15px;
       cursor: pointer;
       background: var(--day-cell-bg);
-      font-size: 1.1rem;
+      font-size: 0.8rem;
       transition: all 0.2s;
     }
 
@@ -492,73 +635,109 @@
     /* Toast Notification */
     .toast {
       position: fixed;
-      bottom: 20px;
+      bottom: 10px;
       left: 50%;
       transform: translateX(-50%);
       background: var(--primary);
       color: white;
-      padding: 12px 24px;
+      padding: 10px 20px;
       border-radius: 8px;
       z-index: 1000;
       animation: fadeIn 0.3s;
       box-shadow: var(--shadow);
+      font-size: 0.9rem;
+      max-width: 90%;
+      text-align: center;
     }
 
     @keyframes fadeIn {
       from { opacity: 0; bottom: 0; }
-      to { opacity: 1; bottom: 20px; }
+      to { opacity: 1; bottom: 10px; }
     }
 
-    @media (max-width: 1200px) {
-      .habits-grid {
-        grid-template-columns: repeat(2, minmax(300px, 1fr));
-      }
-      
-      .stats-container {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 768px) {
-      :root {
-        --font-size-base: 14px;
-      }
-      
+    @media (min-width: 768px) {
       .app-header {
-        flex-direction: column;
-        gap: 15px;
-        text-align: center;
+        flex-wrap: nowrap;
+        padding: 20px;
       }
       
-      .header-left, .header-center, .header-right {
-        width: 100%;
-        justify-content: center;
+      .header-left {
+        order: 1;
+        flex: 0 1 auto;
+        min-width: 0;
+      }
+      
+      .header-center {
+        order: 2;
+        flex: 1;
+      }
+      
+      .header-right {
+        order: 3;
+        flex: 0 1 auto;
       }
       
       .controls {
         flex-direction: column;
-        align-items: stretch;
       }
-
+      
       .input-group {
-        flex-direction: column;
+        flex-direction: row;
       }
-
+      
       .habits-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
       }
-
-      .tracker-container {
-        padding: 15px;
+      
+      .stats-container {
+        grid-template-columns: repeat(2, 1fr);
       }
       
       .category-filter {
-        flex-direction: column;
-        align-items: stretch;
+        flex-direction: row;
+        align-items: center;
       }
       
       .category-filter select {
-        max-width: 100%;
+        max-width: 200px;
+      }
+    }
+
+    @media (min-width: 992px) {
+      :root {
+        --font-size-base: 16px;
+      }
+      
+      .controls, .tracker-container {
+        max-width: 1200px;
+        padding: 20px;
+      }
+      
+      .habits-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+      }
+      
+      .stats-container {
+        grid-template-columns: repeat(4, 1fr);
+      }
+      
+      .habit-header {
+        padding: 18px;
+        font-size: 1.2rem;
+      }
+      
+      .calendar {
+        padding: 18px;
+      }
+      
+      .weekdays, .days-grid {
+        gap: 6px;
+        font-size: 1rem;
+      }
+      
+      .day-cell {
+        padding: 10px 0;
       }
     }
   </style>
@@ -569,7 +748,7 @@
       <span class="user-greeting" id="userGreeting"></span>
     </div>
     <div class="header-center">
-      <h1 class="app-title">Daily Habit Tracker</h1>
+      <h1 class="app-title">Habit Tracker</h1>
     </div>
     <div class="header-right">
       <div class="badge" id="activeHabitsBadge"></div>
@@ -585,19 +764,47 @@
         <div class="auth-tab" id="registerTab">Register</div>
       </div>
       
+      <div class="auth-decoration">
+        <div class="decoration-circle"></div>
+        <div class="decoration-square"></div>
+        <div class="decoration-triangle"></div>
+      </div>
+      
       <div id="loginForm">
-        <h2>Login</h2>
-        <input type="email" id="emailInput" placeholder="Email" />
-        <input type="password" id="passwordInput" placeholder="Password" />
-        <button id="loginBtn">Login</button>
+        <h2>Welcome Back!</h2>
+        <div class="input-group">
+          <input type="email" id="emailInput" placeholder="Email" />
+          <i class="input-icon">✉️</i>
+        </div>
+        <div class="input-group">
+          <input type="password" id="passwordInput" placeholder="Password" />
+          <i class="input-icon">🔒</i>
+        </div>
+        <button id="loginBtn" class="auth-button">
+          <span class="button-text">Login</span>
+          <span class="button-icon">→</span>
+        </button>
       </div>
       
       <div id="registerForm" style="display: none;">
-        <h2>Register</h2>
-        <input type="text" id="nicknameInput" placeholder="Nickname" />
-        <input type="email" id="emailRegisterInput" placeholder="Email" />
-        <input type="password" id="passwordRegisterInput" placeholder="Password" />
-        <button id="registerBtn">Register</button>
+        <h2>Create Account</h2>
+        <div class="input-group">
+          <input type="text" id="nicknameInput" placeholder="Nickname" />
+          <i class="input-icon">👤</i>
+        </div>
+        <div class="input-group">
+          <input type="email" id="emailRegisterInput" placeholder="Email" />
+          <i class="input-icon">✉️</i>
+        </div>
+        <div class="input-group">
+          <input type="password" id="passwordRegisterInput" placeholder="Password" />
+          <i class="input-icon">🔒</i>
+        </div>
+        <button id="registerBtn" class="auth-button">
+          <span class="button-text">Register</span>
+          <span class="button-icon">↑</span>
+        </button>
+        <p class="auth-terms">By registering, you agree to our Terms and Privacy Policy</p>
       </div>
     </div>
   </div>
@@ -615,25 +822,27 @@
       <button id="addHabit">Add Habit</button>
     </div>
     <div class="month-selector">
-      <button id="prevMonth">&lt;</button>
-      <select id="monthSelect">
-        <option value="0">January</option>
-        <option value="1">February</option>
-        <option value="2">March</option>
-        <option value="3">April</option>
-        <option value="4">May</option>
-        <option value="5">June</option>
-        <option value="6">July</option>
-        <option value="7">August</option>
-        <option value="8">September</option>
-        <option value="9">October</option>
-        <option value="10">November</option>
-        <option value="11">December</option>
-      </select>
-      <select id="yearSelect">
-        <!-- Years will be populated by JavaScript -->
-      </select>
-      <button id="nextMonth">&gt;</button>
+      <button id="prevMonth" class="month-nav-btn">‹</button>
+      <div class="month-year-display">
+        <select id="monthSelect" class="compact-select">
+          <option value="0">Jan</option>
+          <option value="1">Feb</option>
+          <option value="2">Mar</option>
+          <option value="3">Apr</option>
+          <option value="4">May</option>
+          <option value="5">Jun</option>
+          <option value="6">Jul</option>
+          <option value="7">Aug</option>
+          <option value="8">Sep</option>
+          <option value="9">Oct</option>
+          <option value="10">Nov</option>
+          <option value="11">Dec</option>
+        </select>
+        <select id="yearSelect" class="compact-select">
+          <!-- Years will be populated by JavaScript -->
+        </select>
+      </div>
+      <button id="nextMonth" class="month-nav-btn">›</button>
     </div>
   </div>
 
@@ -644,8 +853,8 @@
 
   <div class="tracker-container" id="trackerContainer">
     <div class="view-toggle">
-      <button class="view-btn active" data-view="monthly">Monthly View</button>
-      <button class="view-btn" data-view="weekly">Weekly View</button>
+      <button class="view-btn active" data-view="monthly">Month</button>
+      <button class="view-btn" data-view="weekly">Week</button>
     </div>
     
     <div class="category-filter">
@@ -1428,6 +1637,9 @@
             updateActiveHabitsBadge(habits);
             renderHabits();
             showToast("Error updating habit: " + err.message);
+          } finally {
+            e.target.innerHTML = habitToUpdate.archived ? '↻' : '🗄';
+            e.target.disabled = false;
           }
         });
 
@@ -1462,6 +1674,9 @@
               updateActiveHabitsBadge(habits);
               renderHabits();
               showToast("Error deleting habit: " + err.message);
+            } finally {
+              e.target.innerHTML = '✕';
+              e.target.disabled = false;
             }
           }
         });
@@ -1556,6 +1771,26 @@
       loginTab.classList.remove('active');
       registerForm.style.display = 'block';
       loginForm.style.display = 'none';
+    });
+
+    // Add animation to auth tabs
+    document.querySelectorAll('.auth-tab').forEach(tab => {
+      tab.addEventListener('click', function() {
+        this.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+          this.style.transform = 'scale(1)';
+        }, 100);
+      });
+    });
+
+    // Add animation to auth buttons
+    document.querySelectorAll('.auth-button').forEach(button => {
+      button.addEventListener('click', function() {
+        this.style.transform = 'translateY(0) scale(0.98)';
+        setTimeout(() => {
+          this.style.transform = 'translateY(-2px) scale(1)';
+        }, 100);
+      });
     });
 
     loginBtn.addEventListener('click', async () => {
