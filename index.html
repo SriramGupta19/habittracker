@@ -557,6 +557,13 @@
       transform: scale(1.2);
     }
 
+    .habit-category {
+      font-weight: normal; /* Unbold the category */
+      font-size: 0.9rem;
+      opacity: 0.9;
+      margin-top: 4px;
+    }
+
     .calendar {
       padding: 15px;
     }
@@ -648,6 +655,28 @@
       font-size: 0.9rem;
       max-width: 90%;
       text-align: center;
+    }
+
+    /* Reminder Input */
+    .reminder-input {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .reminder-input input {
+      flex: 1;
+    }
+
+    /* Share Button */
+    .share-btn {
+      background-color: var(--accent) !important;
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
     }
 
     @keyframes fadeIn {
@@ -819,6 +848,9 @@
         <option value="Mindfulness">Mindfulness</option>
         <option value="Other">Other</option>
       </select>
+      <div class="reminder-input">
+        <input type="time" id="habitReminder" placeholder="Set reminder (optional)">
+      </div>
       <button id="addHabit">Add Habit</button>
     </div>
     <div class="month-selector">
@@ -922,6 +954,7 @@
     const yearSelect = document.getElementById('yearSelect');
     const newHabitInput = document.getElementById('newHabit');
     const habitCategory = document.getElementById('habitCategory');
+    const habitReminder = document.getElementById('habitReminder');
     const filterCategory = document.getElementById('filterCategory');
     const viewToggle = document.querySelector('.view-toggle');
     const statsContainer = document.getElementById('statsContainer');
@@ -1210,6 +1243,73 @@
       }, 100);
     }
 
+    // Setup reminders
+    function setupReminders() {
+      if (!('Notification' in window)) {
+        console.log('This browser does not support notifications');
+        return;
+      }
+      
+      Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+          console.log('Notification permission granted');
+          scheduleReminders();
+        }
+      });
+    }
+
+    function scheduleReminders() {
+      habits.forEach(habit => {
+        if (habit.reminderTime && !habit.archived) {
+          const [hours, minutes] = habit.reminderTime.split(':');
+          const now = new Date();
+          const reminderTime = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+            parseInt(hours),
+            parseInt(minutes),
+            0
+          );
+          
+          if (now > reminderTime) {
+            reminderTime.setDate(reminderTime.getDate() + 1);
+          }
+          
+          const timeout = reminderTime.getTime() - now.getTime();
+          
+          setTimeout(() => {
+            if (Notification.permission === 'granted') {
+              new Notification(`Time for: ${habit.name}`, {
+                body: `Don't forget to ${habit.name.toLowerCase()} today!`,
+                icon: '/icon.png'
+              });
+            }
+            
+            // Schedule for next day
+            scheduleReminders();
+          }, timeout);
+        }
+      });
+    }
+
+    // Social sharing
+    function shareHabit(habit) {
+      if (navigator.share) {
+        navigator.share({
+          title: `My Habit: ${habit.name}`,
+          text: `I've been tracking "${habit.name}" for ${calculateCurrentStreak(habit.days)} days!`,
+          url: window.location.href
+        }).catch(err => {
+          console.log('Error sharing:', err);
+        });
+      } else {
+        // Fallback for browsers that don't support Web Share API
+        const shareUrl = `https://twitter.com/intent/tweet?text=I've been tracking "${habit.name}" for ${calculateCurrentStreak(habit.days)} days!&url=${encodeURIComponent(window.location.href)}`;
+        window.open(shareUrl, '_blank');
+      }
+    }
+
     // Drag and drop functionality
     function setupDragAndDrop() {
       const habitsGrid = document.querySelector('.habits-grid');
@@ -1353,12 +1453,12 @@
 
       monthSelect.addEventListener('change', () => {
         currentMonth = parseInt(monthSelect.value);
-        loadHabits();
+        renderHabits();
       });
 
       yearSelect.addEventListener('change', () => {
         currentYear = parseInt(yearSelect.value);
-        loadHabits();
+        renderHabits();
       });
 
       document.getElementById('prevMonth').addEventListener('click', () => {
@@ -1366,7 +1466,7 @@
         else currentMonth--;
         monthSelect.value = currentMonth;
         yearSelect.value = currentYear;
-        loadHabits();
+        renderHabits();
       });
 
       document.getElementById('nextMonth').addEventListener('click', () => {
@@ -1374,7 +1474,7 @@
         else currentMonth++;
         monthSelect.value = currentMonth;
         yearSelect.value = currentYear;
-        loadHabits();
+        renderHabits();
       });
     }
 
@@ -1393,6 +1493,7 @@
         updateActiveHabitsBadge(habits);
         renderStatistics();
         renderHabits();
+        setupReminders();
       } catch (err) {
         showToast("Error loading habits: " + err.message);
       } finally {
@@ -1603,6 +1704,14 @@
 
         card.appendChild(header);
         card.appendChild(calendar);
+
+        // Add share button
+        const shareButton = document.createElement('button');
+        shareButton.className = 'share-btn';
+        shareButton.innerHTML = 'Share Progress 📤';
+        shareButton.addEventListener('click', () => shareHabit(habit));
+        card.appendChild(shareButton);
+
         grid.appendChild(card);
 
         // Archive button event listener
@@ -1701,6 +1810,7 @@
         color: getNextColor(), 
         days: [],
         category: habitCategory.value,
+        reminderTime: habitReminder.value || null,
         createdAt: new Date(),
         id: name,
         archived: false
@@ -1716,6 +1826,7 @@
         // Optimistic update
         habits.push(newHabit);
         newHabitInput.value = '';
+        habitReminder.value = '';
         updateActiveHabitsBadge(habits);
         renderHabits();
         
@@ -1723,6 +1834,7 @@
         await setDoc(doc(db, "users", currentUser.uid, "habits", name), newHabit);
         
         showToast(`Habit "${name}" added!`);
+        setupReminders();
       } catch (err) {
         // Rollback on error
         habits = habits.filter(h => h.id !== name);
